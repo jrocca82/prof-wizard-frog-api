@@ -1,22 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { generateObject } from 'ai';
-import { StudyPlanSessionInput } from './schema/session.schema';
-import { StudyPlanSchema, StudyPlan } from './schema/plan.schema';
-
-type ClarificationResponse = {
-  sessionId: string;
-  stage: 'clarification';
-  message: string;
-};
-
-type PlanResponse = {
-  sessionId: string;
-  stage: 'plan';
-  planJson: StudyPlan;
-  warnings?: unknown;
-};
-
-export type StudyPlanResponse = ClarificationResponse | PlanResponse;
+import {
+  StudyPlanSchema,
+  StudyPlanSessionInput,
+  StudyPlanResponse,
+} from './schema/plan.schema';
 
 @Injectable()
 export class StudyPlanService {
