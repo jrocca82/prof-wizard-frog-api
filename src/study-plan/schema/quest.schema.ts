@@ -23,6 +23,7 @@ export const QuestSchema = z.object({
   generation_status: z.enum(['pending', 'ready', 'clarification', 'error']),
   generation_warnings: z.unknown().nullable(), // safer than string
   created_at: z.string(),
+  summary: z.string().nullable(),
 });
 export type Quest = z.infer<typeof QuestSchema>;
 

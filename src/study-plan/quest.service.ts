@@ -63,7 +63,7 @@ export class QuestService {
           subject: seed.subject,
           goal: seed.goal,
           questDays: seed.questDays,
-          cadence: seed.questCadence as 'daily' | 'weekly' | 'fortnightly', // ✅ consistent types
+          cadence: seed.questCadence as 'daily' | 'weekly' | 'fortnightly',
           studyTimeEpoch: seed.studyTimeEpoch,
         },
       });
@@ -85,6 +85,7 @@ export class QuestService {
           .from('quests')
           .update({
             generation_status: 'ready',
+            summary: res.planJson.summary,
           })
           .eq('id', questId);
       } else if (res.stage === 'clarification') {
@@ -124,6 +125,7 @@ export class QuestService {
       .single();
 
     if (error || !data) throw error ?? new Error('Quest not found');
+    console.log('SUMMARY', data.summary);
     return QuestSchema.parse(data);
   }
 

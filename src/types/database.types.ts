@@ -68,6 +68,7 @@ export type Database = {
           quest_days: number;
           status: string | null;
           subject: string;
+          summary: string | null;
           user_id: string | null;
         };
         Insert: {
@@ -81,6 +82,7 @@ export type Database = {
           quest_days: number;
           status?: string | null;
           subject: string;
+          summary?: string | null;
           user_id?: string | null;
         };
         Update: {
@@ -94,6 +96,7 @@ export type Database = {
           quest_days?: number;
           status?: string | null;
           subject?: string;
+          summary?: string | null;
           user_id?: string | null;
         };
         Relationships: [
