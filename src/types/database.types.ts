@@ -66,6 +66,7 @@ export type Database = {
           preferred_study_time: number | null;
           quest_cadence: string | null;
           quest_days: number;
+          start_time: number | null;
           status: string | null;
           subject: string;
           summary: string | null;
@@ -80,6 +81,7 @@ export type Database = {
           preferred_study_time?: number | null;
           quest_cadence?: string | null;
           quest_days: number;
+          start_time?: number | null;
           status?: string | null;
           subject: string;
           summary?: string | null;
@@ -94,6 +96,7 @@ export type Database = {
           preferred_study_time?: number | null;
           quest_cadence?: string | null;
           quest_days?: number;
+          start_time?: number | null;
           status?: string | null;
           subject?: string;
           summary?: string | null;

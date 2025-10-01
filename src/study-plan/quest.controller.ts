@@ -8,6 +8,7 @@ import {
   Req,
   UseGuards,
   UnauthorizedException,
+  Delete,
 } from '@nestjs/common';
 import { QuestService } from './quest.service';
 import { StudyPlanSeedSchema, StudyPlanSeed } from './schema/plan.schema';
@@ -59,5 +60,26 @@ export class QuestController {
   @Get(':id/tasks')
   async getTasks(@Param('id') id: string) {
     return this.questService.getQuestTasks(id);
+  }
+
+  @Delete(':id')
+  async deleteQuest(
+    @Param('id') id: string,
+    @Req() req: AuthRequest, // or however you attach userId
+  ) {
+    const userId = req.user?.id;
+    if (!userId) throw new UnauthorizedException();
+    return this.questService.deleteQuest(id, userId);
+  }
+
+  @Post(':questId/tasks/:taskId/expand')
+  async expandTask(
+    @Param('questId') questId: string,
+    @Param('taskId') taskId: string,
+    @Req() req: AuthRequest,
+  ) {
+    const userId = req.user?.id;
+    if (!userId) throw new UnauthorizedException();
+    return this.questService.expandTask(questId, taskId);
   }
 }

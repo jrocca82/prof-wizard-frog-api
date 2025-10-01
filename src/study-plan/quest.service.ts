@@ -8,15 +8,18 @@ import {
   QuestSchema,
   QuestTask,
   QuestTaskSchema,
+  OriginalInstructionSchema,
 } from './schema/quest.schema';
 import { StudyPlanSeed } from './schema/plan.schema';
 import { Database } from '../types/database.types';
 import { SUPABASE } from '../supabase/supabase.module';
+import { TaskExpansionService } from './task-expansion.service';
 
 @Injectable()
 export class QuestService {
   constructor(
     private readonly planService: StudyPlanService,
+    private readonly taskExpansionService: TaskExpansionService,
     @Inject(SUPABASE) private readonly supabase: SupabaseClient<Database>,
   ) {}
 
@@ -26,8 +29,9 @@ export class QuestService {
       subject: seed.subject,
       goal: seed.goal,
       questDays: seed.questDays,
-      questCadence: seed.cadence, // ✅ no toLowerCase, already lowercase in schema
+      questCadence: seed.cadence,
       studyTimeEpoch: seed.studyTimeEpoch,
+      startTime: seed.startTime,
     });
 
     const { data, error } = await this.supabase
@@ -40,6 +44,7 @@ export class QuestService {
         quest_cadence: parsed.questCadence,
         preferred_study_time: parsed.studyTimeEpoch,
         generation_status: 'pending',
+        start_time: parsed.startTime,
       })
       .select('id')
       .single();
@@ -65,6 +70,7 @@ export class QuestService {
           questDays: seed.questDays,
           cadence: seed.questCadence as 'daily' | 'weekly' | 'fortnightly',
           studyTimeEpoch: seed.studyTimeEpoch,
+          startTime: seed.startTime,
         },
       });
 
@@ -125,7 +131,6 @@ export class QuestService {
       .single();
 
     if (error || !data) throw error ?? new Error('Quest not found');
-    console.log('SUMMARY', data.summary);
     return QuestSchema.parse(data);
   }
 
@@ -138,5 +143,56 @@ export class QuestService {
 
     if (error || !data) throw error ?? new Error('No tasks found');
     return data.map((t) => QuestTaskSchema.parse(t));
+  }
+
+  async deleteQuest(
+    questId: string,
+    userId: string,
+  ): Promise<{ success: true }> {
+    const { error: taskErr } = await this.supabase
+      .from('quest_tasks')
+      .delete()
+      .eq('quest_id', questId);
+
+    if (taskErr) {
+      throw taskErr;
+    }
+
+    const { error: questErr } = await this.supabase
+      .from('quests')
+      .delete()
+      .eq('id', questId)
+      .eq('user_id', userId);
+
+    if (questErr) {
+      throw questErr;
+    }
+
+    return { success: true };
+  }
+
+  async expandTask(questId: string, taskId: string) {
+    // 1. Get the base task
+    const { data: task, error } = await this.supabase
+      .from('quest_tasks')
+      .select('id, quest_id, original_instruction')
+      .eq('id', taskId)
+      .eq('quest_id', questId)
+      .single();
+
+    console.log({ task });
+
+    if (error || !task) throw error ?? new Error('Task not found');
+
+    const rawInstruction = OriginalInstructionSchema.parse(
+      task.original_instruction,
+    );
+
+    // ✅ Now safe: task.original_instruction.instruction is a string
+    const expansion = await this.taskExpansionService.expandInstruction(
+      rawInstruction.instruction,
+    );
+
+    return expansion;
   }
 }

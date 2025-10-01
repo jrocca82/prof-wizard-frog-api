@@ -42,6 +42,7 @@ export const StudyPlanSeedSchema = z.object({
   questDays: z.number().int().positive(),
   cadence: z.enum(['daily', 'weekly', 'fortnightly']), // lowercase here too
   studyTimeEpoch: z.number().int().positive(),
+  startTime: z.number().int().positive(),
 });
 export type StudyPlanSeed = z.infer<typeof StudyPlanSeedSchema>;
 

@@ -1,14 +1,15 @@
 import { z } from 'zod';
-import { StudyPlanSchema } from './plan.schema';
 
 export const CreateQuestSchema = z.object({
   userId: z.string().uuid().nullable(),
   subject: z.string().min(1),
   goal: z.string().min(1),
   questDays: z.number().int().positive(),
-  questCadence: z.enum(['daily', 'weekly', 'fortnightly', 'custom']), // add 'fortnightly' so it matches StudyPlan
+  questCadence: z.enum(['daily', 'weekly', 'fortnightly', 'custom']),
   studyTimeEpoch: z.number().int().positive(),
+  startTime: z.number().int().positive(),
 });
+
 export type CreateQuestInput = z.infer<typeof CreateQuestSchema>;
 
 export const QuestSchema = z.object({
@@ -27,14 +28,25 @@ export const QuestSchema = z.object({
 });
 export type Quest = z.infer<typeof QuestSchema>;
 
+export const OriginalInstructionSchema = z.object({
+  dayNumber: z.number(),
+  instruction: z.string(),
+  plannedAtEpoch: z.number(),
+});
+
+export type OriginalInstructionSchema = z.infer<
+  typeof OriginalInstructionSchema
+>;
+
 export const QuestTaskSchema = z.object({
   id: z.string().uuid(),
-  quest_id: z.string().uuid(),
-  day_number: z.number().int(),
-  original_instruction: StudyPlanSchema.shape.items.element,
+  quest_id: z.string().uuid().nullable(),
+  day_number: z.number(),
+  original_instruction: OriginalInstructionSchema,
   is_revealed: z.boolean().nullable(),
   revealed_at: z.string().nullable(),
   is_complete: z.boolean().nullable(),
   completed_at: z.string().nullable(),
 });
+
 export type QuestTask = z.infer<typeof QuestTaskSchema>;
