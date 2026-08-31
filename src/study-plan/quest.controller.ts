@@ -58,8 +58,11 @@ export class QuestController {
   }
 
   @Get(':id/tasks')
-  async getTasks(@Param('id') id: string) {
-    return this.questService.getQuestTasks(id);
+  async getTasks(@Param('id') id: string, @Req() req: AuthRequest) {
+    if (!req.user?.id) {
+      throw new UnauthorizedException();
+    }
+    return this.questService.getQuestTasks(id, req.user.id);
   }
 
   @Delete(':id')
@@ -80,6 +83,6 @@ export class QuestController {
   ) {
     const userId = req.user?.id;
     if (!userId) throw new UnauthorizedException();
-    return this.questService.expandTask(questId, taskId);
+    return this.questService.expandTask(questId, taskId, userId);
   }
 }

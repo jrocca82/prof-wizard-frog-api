@@ -1,4 +1,9 @@
-import { Injectable, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { StudyPlanService } from './study-plan.service';
 import {
@@ -134,7 +139,9 @@ export class QuestService {
     return QuestSchema.parse(data);
   }
 
-  async getQuestTasks(questId: string): Promise<QuestTask[]> {
+  async getQuestTasks(questId: string, userId: string): Promise<QuestTask[]> {
+    await this.assertQuestOwner(questId, userId);
+
     const { data, error } = await this.supabase
       .from('quest_tasks')
       .select('*')
@@ -145,10 +152,27 @@ export class QuestService {
     return data.map((t) => QuestTaskSchema.parse(t));
   }
 
+  private async assertQuestOwner(
+    questId: string,
+    userId: string,
+  ): Promise<void> {
+    const { data, error } = await this.supabase
+      .from('quests')
+      .select('user_id')
+      .eq('id', questId)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) throw new NotFoundException('Quest not found');
+    if (data.user_id !== userId) throw new ForbiddenException();
+  }
+
   async deleteQuest(
     questId: string,
     userId: string,
   ): Promise<{ success: true }> {
+    await this.assertQuestOwner(questId, userId);
+
     const { error: taskErr } = await this.supabase
       .from('quest_tasks')
       .delete()
@@ -171,7 +195,9 @@ export class QuestService {
     return { success: true };
   }
 
-  async expandTask(questId: string, taskId: string) {
+  async expandTask(questId: string, taskId: string, userId: string) {
+    await this.assertQuestOwner(questId, userId);
+
     // 1. Get the base task
     const { data: task, error } = await this.supabase
       .from('quest_tasks')
